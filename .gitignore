@@ -1,0 +1,69 @@
+# This .gitignore file should be placed at the root of your Unity project directory
+# Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
+
+# ===============================================
+# Archivos y Carpetas generadas por Unity (CRUCIALES)
+# ===============================================
+
+# La carpeta Library contiene datos de caché que son grandes y pueden ser regenerados.
+# ¡Es la exclusión más importante!
+/[Ll]ibrary/
+
+# Archivos temporales
+/[Tt]emp/
+
+# Archivos intermedios del build
+/[Oo]bj/
+
+# Carpetas de Builds (Builds de juegos)
+/[Bb]uild/
+/[Bb]uilds/
+
+# Logs y Archivos de configuración de usuario
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+
+# Capturas de memoria que pueden ser enormes
+/[Mm]emory[Cc]aptures/
+
+# ===============================================
+# Archivos de configuración de IDEs
+# ===============================================
+
+# Directorio de caché de Visual Studio
+.vs/
+
+# Archivos de solución y proyecto de Visual Studio/Rider
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+
+# Archivos de plugin autogenerados de JetBrains Rider
+[Aa]ssets/Plugins/Editor/JetBrains*
+
+# ===============================================
+# Excepciones (Archivos que DEBEN ser incluidos)
+# ===============================================
+
+# La LÍNEA MÁS IMPORTANTE:
+# Los archivos .meta deben ser rastreados para que las referencias y configuraciones
+# de tus assets (incluyendo modelos 3D, texturas, etc.) funcionen correctamente
+# en diferentes máquinas.
+!/[Aa]ssets/**/*.meta
+
+# Descomenta la siguiente línea si usas las herramientas de Asset Store y quieres
+# ignorarlas (pueden ser grandes)
+# /[Aa]ssets/AssetStoreTools*
+
+# Archivos de sistema operativo
+.DS_Store
+.localized
