@@ -6,13 +6,13 @@ using UnityEngine.UI;
 public class BarraVida : MonoBehaviour
 {
     public Image rellenoBarraVida;
-    private PlayerHealth playerHealth;
+    [SerializeField] private PlayerHealth playerHealth;
 
     private float vidaMaxima;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        playerHealth = GameObject.FindWithTag("Player").GetComponent<PlayerHealth>();
+        // playerHealth = GameObject.FindWithTag("Player").GetComponent<PlayerHealth>();
         vidaMaxima = playerHealth.hp;
     }
 
