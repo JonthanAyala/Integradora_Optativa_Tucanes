@@ -32,6 +32,12 @@ public class EnemySimpleMove : MonoBehaviour
         direction = startRight ? 1 : -1;
         if (flipVisual) SetFacing(direction);
         rb = GetComponent<Rigidbody>();
+        // Si hay Rigidbody, hacerlo kinemático para que el movimiento mediante transform.Translate
+        // no genere fuerzas inesperadas que lancen al jugador. Usaremos salto simulado en lugar de física.
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+        }
         jumpTimer = jumpInterval;
     }
 
@@ -89,7 +95,7 @@ public class EnemySimpleMove : MonoBehaviour
             Rigidbody otherRb = collision.gameObject.GetComponent<Rigidbody>();
             if (otherRb != null)
             {
-                otherRb.velocity = Vector3.zero;
+                otherRb.linearVelocity = Vector3.zero;
                 otherRb.angularVelocity = Vector3.zero;
             }
             else
@@ -106,7 +112,7 @@ public class EnemySimpleMove : MonoBehaviour
         // Evitar rebotes usando física: si tenemos Rigidbody, limpiamos velocidad del enemigo
         if (rb != null)
         {
-            rb.velocity = Vector3.zero;
+            rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
 
@@ -163,7 +169,7 @@ public class EnemySimpleMove : MonoBehaviour
             Rigidbody otherRb = other.GetComponent<Rigidbody>();
             if (otherRb != null)
             {
-                otherRb.velocity = Vector3.zero;
+                otherRb.linearVelocity = Vector3.zero;
                 otherRb.angularVelocity = Vector3.zero;
             }
             else
@@ -193,16 +199,8 @@ public class EnemySimpleMove : MonoBehaviour
 
     private void StartJump()
     {
-        // Si tenemos Rigidbody, aplicamos un impulso hacia arriba
-        if (rb != null && !rb.isKinematic)
-        {
-            rb.AddForce(Vector3.up * jumpImpulse, ForceMode.Impulse);
-        }
-        else
-        {
-            // Simular salto local sin Rigidbody
-            StartCoroutine(SimulatedJump());
-        }
+        // Usar salto simulado por transform para evitar física no deseada
+        StartCoroutine(SimulatedJump());
     }
 
     private System.Collections.IEnumerator SimulatedJump()

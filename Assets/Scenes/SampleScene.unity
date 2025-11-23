@@ -229,6 +229,13 @@ MonoBehaviour:
   moveDistance: 12
   startRight: 1
   flipVisual: 1
+  streakWindow: 0.5
+  collisionBackoff: 0.25
+  collisionCooldown: 0.15
+  jumpInterval: 5
+  jumpImpulse: 5
+  jumpFloatHeight: 0.25
+  jumpDuration: 0.35
 --- !u!114 &252742836
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -345,15 +352,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: ead049e5b3967894db7d357d61c9f0e4, type: 3}
       propertyPath: m_LocalScale.x
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ead049e5b3967894db7d357d61c9f0e4, type: 3}
       propertyPath: m_LocalScale.y
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ead049e5b3967894db7d357d61c9f0e4, type: 3}
       propertyPath: m_LocalScale.z
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: ead049e5b3967894db7d357d61c9f0e4, type: 3}
       propertyPath: m_LocalPosition.x
@@ -630,8 +637,8 @@ Transform:
   m_GameObject: {fileID: 426499131}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 200, y: 2, z: 30}
+  m_LocalPosition: {x: 0.07, y: -1.79, z: 0}
+  m_LocalScale: {x: 200, y: 5, z: 30}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2008877399}
