@@ -6,6 +6,7 @@ public class PlayerHealth : MonoBehaviour
     public int maxHP = 3;
     public float invulnTime = 0.8f;   // tiempo invulnerable tras recibir golpe
     public float knockbackForce = 8f; // empujón al recibir golpe
+    public float maxKnockbackSpeed = 6f;
 
     public int hp;
     float invulnTimer;
@@ -29,8 +30,26 @@ public class PlayerHealth : MonoBehaviour
         {
             Vector3 push = (transform.position - hitFromDirection).normalized;
             push.y = 0.25f; // levanta tantito
-            rb.linearVelocity = new Vector3(0, rb.linearVelocity.y, 0); // reset horizontal para empujón consistente
+            // Resetear velocidad horizontal para un empujón consistente
+            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
             rb.AddForce(push * knockbackForce, ForceMode.Impulse);
+
+            // Limitar la velocidad horizontal resultante para evitar que el jugador salga disparado
+            Vector3 lv = rb.linearVelocity;
+            lv.x = Mathf.Clamp(lv.x, -maxKnockbackSpeed, maxKnockbackSpeed);
+            lv.z = Mathf.Clamp(lv.z, -maxKnockbackSpeed, maxKnockbackSpeed);
+            rb.linearVelocity = lv;
+        }
+        else
+        {
+            // Si no hay Rigidbody, intentar un pequeño nudge si existe CharacterController
+            var cc = GetComponent<CharacterController>();
+            if (cc != null)
+            {
+                Vector3 push = (transform.position - hitFromDirection).normalized;
+                push.y = 0f;
+                cc.Move(push * 0.8f);
+            }
         }
 
         Debug.Log($"Player HP: {hp}/{maxHP}");

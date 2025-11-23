@@ -31,6 +31,7 @@ public class EnemySimpleMove : MonoBehaviour
     public float jumpFloatHeight = 0.25f; // altura del salto simulado si no hay Rigidbody
     public float jumpDuration = 0.35f; // duración total del salto simulado
     private float jumpTimer = 0f;
+    private bool isJumping = false;
 
     void Start()
     {
@@ -143,7 +144,7 @@ public class EnemySimpleMove : MonoBehaviour
             Rigidbody otherRb = other.GetComponent<Rigidbody>();
             if (otherRb != null)
             {
-                otherRb.velocity = Vector3.zero;
+                otherRb.linearVelocity = Vector3.zero;
                 otherRb.angularVelocity = Vector3.zero;
             }
             else
@@ -164,7 +165,7 @@ public class EnemySimpleMove : MonoBehaviour
         // Para objetos no-jugador: limpiar velocidad del enemigo y retroceder un poco
         if (rb != null)
         {
-            rb.velocity = Vector3.zero;
+            rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
 
@@ -224,7 +225,7 @@ public class EnemySimpleMove : MonoBehaviour
             Rigidbody otherRb = other.GetComponent<Rigidbody>();
             if (otherRb != null)
             {
-                otherRb.velocity = Vector3.zero;
+                otherRb.linearVelocity = Vector3.zero;
                 otherRb.angularVelocity = Vector3.zero;
             }
             else
@@ -260,18 +261,29 @@ public class EnemySimpleMove : MonoBehaviour
     private void StartJump()
     {
         // Usar salto simulado por transform para evitar física no deseada
-        StartCoroutine(SimulatedJump());
+        StartCoroutine(SimulatedJump(0f));
     }
 
-    private System.Collections.IEnumerator SimulatedJump()
+    // Permite solicitar un salto con altura extra (por ejemplo cuando golpea al jugador)
+    public void TriggerJump(float extraHeight)
     {
+        if (!isJumping)
+        {
+            StartCoroutine(SimulatedJump(extraHeight));
+        }
+    }
+
+    private System.Collections.IEnumerator SimulatedJump(float extraHeight)
+    {
+        isJumping = true;
         float half = jumpDuration * 0.5f;
         float t = 0f;
         Vector3 orig = transform.position;
+        float height = jumpFloatHeight + extraHeight;
         while (t < half)
         {
             float frac = t / half;
-            transform.position = Vector3.Lerp(orig, orig + Vector3.up * jumpFloatHeight, frac);
+            transform.position = Vector3.Lerp(orig, orig + Vector3.up * height, frac);
             t += Time.deltaTime;
             yield return null;
         }
@@ -280,10 +292,11 @@ public class EnemySimpleMove : MonoBehaviour
         while (t < half)
         {
             float frac = t / half;
-            transform.position = Vector3.Lerp(orig + Vector3.up * jumpFloatHeight, orig, frac);
+            transform.position = Vector3.Lerp(orig + Vector3.up * height, orig, frac);
             t += Time.deltaTime;
             yield return null;
         }
         transform.position = orig;
+        isJumping = false;
     }
 }
