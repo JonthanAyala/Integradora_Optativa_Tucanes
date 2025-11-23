@@ -4,17 +4,15 @@ using UnityEngine;
 public class EnemyDamageOnTouch : MonoBehaviour
 {
     public int damage = 1;
-    public bool useTrigger = false; // si tu collider está marcado como IsTrigger, pon esto en true
+    public bool useTrigger = false; 
     public string playerTag = "Player";
 
     void Reset()
     {
-        // asegurar que el collider esté configurado
         var col = GetComponent<Collider>();
         col.isTrigger = useTrigger;
     }
 
-    // Para colliders NO trigger
     void OnCollisionEnter(Collision c)
     {
         if (useTrigger) return;
@@ -27,7 +25,6 @@ public class EnemyDamageOnTouch : MonoBehaviour
         }
     }
 
-    // Para colliders trigger
     void OnTriggerEnter(Collider other)
     {
         if (!useTrigger) return;

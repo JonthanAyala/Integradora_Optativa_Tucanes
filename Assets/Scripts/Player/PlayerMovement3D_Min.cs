@@ -9,7 +9,7 @@ public class PlayerMovement3D_Min : MonoBehaviour
     public float movementSpeed = 5f;
     private CharacterController controller;
     
-    public float jumpForce = 8f; // Fuerza vertical para un salto notable
+    public float jumpForce = 10f; // Fuerza vertical para un salto notable (aumentada)
     private Vector3 verticalVelocity = Vector3.zero; // Velocidad vertical (Gravedad + Salto)
     // -------------------------------------------
     
@@ -61,6 +61,11 @@ public class PlayerMovement3D_Min : MonoBehaviour
             controller = GetComponent<CharacterController>();
             if (controller == null)
                 Debug.LogError("PlayerMovement3D_Min: No se encontró CharacterController en el GameObject. El movimiento no funcionará.");
+        }
+        else
+        {
+            // Reducir el Step Offset para evitar que el jugador suba sobre colliders pequeños
+            controller.stepOffset = 0.15f;
         }
     }
 

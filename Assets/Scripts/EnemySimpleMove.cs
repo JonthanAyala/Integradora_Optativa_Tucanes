@@ -15,6 +15,12 @@ public class EnemySimpleMove : MonoBehaviour
     private float lastCollisionTime = -1f;
     private int collisionStreak = 0;
     public float streakWindow = 0.5f; // tiempo para contar colisiones consecutivas
+    [Header("Stomp / Events")]
+    public float stompHeight = 0.4f; // altura relativa para considerar que el jugador pisa al enemigo
+
+    // Eventos estáticos para desacoplar comportamiento (otros sistemas pueden suscribirse)
+    public static System.Action<EnemySimpleMove, GameObject> OnEnemyStomped;
+    public static System.Action<EnemySimpleMove, GameObject> OnEnemyHitPlayer;
     [Header("Collision tuning")]
     public float collisionBackoff = 0.25f; // cuánto retroceder al chocar
     public float collisionCooldown = 0.15f; // evitar múltiples reverses rápidos
@@ -37,6 +43,21 @@ public class EnemySimpleMove : MonoBehaviour
         if (rb != null)
         {
             rb.isKinematic = true;
+        }
+
+        // Ajustar BoxCollider por defecto para evitar que el jugador pueda "subirse" encima
+        BoxCollider bc = GetComponent<BoxCollider>();
+        if (bc != null)
+        {
+            // Valores recomendados para humanoide pequeño; el usuario puede sobreescribirlos en el Inspector
+            Vector3 recommendedSize = new Vector3(0.8f, 1.6f, 0.8f);
+            Vector3 recommendedCenter = new Vector3(0f, 0.8f, 0f);
+            // Aplicar solo si el tamaño actual es claramente incorrecto (muy ancho o muy bajo)
+            if (bc.size.y < 0.9f || bc.size.x > 2.0f || bc.size.z > 2.0f)
+            {
+                bc.size = recommendedSize;
+                bc.center = recommendedCenter;
+            }
         }
         jumpTimer = jumpInterval;
     }
@@ -75,9 +96,9 @@ public class EnemySimpleMove : MonoBehaviour
     // Cambia de dirección si choca con algo que tenga tag (y no esté Untagged)
     private void OnCollisionEnter(Collision collision)
     {
-        if (Time.time - lastCollisionTime < collisionCooldown)
+        // ignore rapid collisions for non-player objects
+        if (Time.time - lastCollisionTime < collisionCooldown && !collision.gameObject.CompareTag("Player"))
         {
-            // incrementar streak si es muy seguida
             if (Time.time - lastCollisionTime < streakWindow)
                 collisionStreak++;
             return;
@@ -89,34 +110,64 @@ public class EnemySimpleMove : MonoBehaviour
         if (collision.gameObject.CompareTag("Suelo"))
             return; // ignora suelo
 
-        // Si colisionamos con el jugador, tratar de reducir su velocidad para evitar que salga disparado
-        if (collision.gameObject.CompareTag("Player"))
+        GameObject other = collision.gameObject;
+
+        // Si colisionamos con el jugador, comprobamos si fue un "stomp" (pisada)
+        if (other.CompareTag("Player"))
         {
-            Rigidbody otherRb = collision.gameObject.GetComponent<Rigidbody>();
+            bool stomp = false;
+            // Preferir usar punto de contacto si está disponible
+            if (collision.contacts != null && collision.contacts.Length > 0)
+            {
+                Vector3 contactPoint = collision.contacts[0].point;
+                if (contactPoint.y > transform.position.y + stompHeight)
+                    stomp = true;
+            }
+            else
+            {
+                // fallback: usar la posición del jugador
+                float otherY = other.transform.position.y;
+                if (otherY > transform.position.y + stompHeight)
+                    stomp = true;
+            }
+
+            if (stomp)
+            {
+                // El jugador pisó al enemigo: notificar y eliminar enemigo
+                OnEnemyStomped?.Invoke(this, other);
+                Destroy(this.gameObject);
+                return;
+            }
+
+            // Lateral: mitigar lanzamiento del jugador
+            Rigidbody otherRb = other.GetComponent<Rigidbody>();
             if (otherRb != null)
             {
-                otherRb.linearVelocity = Vector3.zero;
+                otherRb.velocity = Vector3.zero;
                 otherRb.angularVelocity = Vector3.zero;
             }
             else
             {
-                // Si el jugador usa CharacterController, intentar moverlo ligeramente hacia atrás
-                var cc = collision.gameObject.GetComponent<CharacterController>();
+                var cc = other.GetComponent<CharacterController>();
                 if (cc != null)
-                {
                     cc.Move(Vector3.right * (-direction) * collisionBackoff);
-                }
             }
+
+            // Notify hit and reverse direction immediately
+            OnEnemyHitPlayer?.Invoke(this, other);
+            ReverseDirection();
+            lastCollisionTime = Time.time;
+            collisionStreak = 0;
+            return;
         }
 
-        // Evitar rebotes usando física: si tenemos Rigidbody, limpiamos velocidad del enemigo
+        // Para objetos no-jugador: limpiar velocidad del enemigo y retroceder un poco
         if (rb != null)
         {
-            rb.linearVelocity = Vector3.zero;
+            rb.velocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
 
-        // Intentar retroceder ligeramente usando la normal del contacto principal
         if (collision.contacts != null && collision.contacts.Length > 0)
         {
             Vector3 normal = collision.contacts[0].normal;
@@ -124,19 +175,14 @@ public class EnemySimpleMove : MonoBehaviour
         }
         else
         {
-            // fallback: retroceder en la dirección opuesta al movimiento
             transform.position += Vector3.right * (-direction) * collisionBackoff;
         }
 
-        // Manejar streak de colisiones: si se colisiona varias veces en un corto periodo, invertir
+        // Manejar streak: invertir sólo si hay múltiples colisiones rápidas
         if (Time.time - lastCollisionTime < streakWindow)
-        {
             collisionStreak++;
-        }
         else
-        {
             collisionStreak = 1;
-        }
 
         if (collisionStreak >= 2)
         {
@@ -150,7 +196,7 @@ public class EnemySimpleMove : MonoBehaviour
     // También sirve si usas colliders tipo trigger
     private void OnTriggerEnter(Collider other)
     {
-        if (Time.time - lastCollisionTime < collisionCooldown)
+        if (Time.time - lastCollisionTime < collisionCooldown && !other.CompareTag("Player"))
         {
             if (Time.time - lastCollisionTime < streakWindow)
                 collisionStreak++;
@@ -163,13 +209,22 @@ public class EnemySimpleMove : MonoBehaviour
         if (other.CompareTag("Suelo"))
             return;
 
-        // Si colisionamos con el jugador por trigger, intentar mitigar su velocidad
+        // Si trigger con jugador
         if (other.CompareTag("Player"))
         {
+            float otherY = other.transform.position.y;
+            float myY = transform.position.y;
+            if (otherY > myY + stompHeight)
+            {
+                OnEnemyStomped?.Invoke(this, other.gameObject);
+                Destroy(this.gameObject);
+                return;
+            }
+
             Rigidbody otherRb = other.GetComponent<Rigidbody>();
             if (otherRb != null)
             {
-                otherRb.linearVelocity = Vector3.zero;
+                otherRb.velocity = Vector3.zero;
                 otherRb.angularVelocity = Vector3.zero;
             }
             else
@@ -178,9 +233,14 @@ public class EnemySimpleMove : MonoBehaviour
                 if (cc != null)
                     cc.Move(Vector3.right * (-direction) * collisionBackoff);
             }
+
+            OnEnemyHitPlayer?.Invoke(this, other.gameObject);
+            ReverseDirection();
+            lastCollisionTime = Time.time;
+            collisionStreak = 0;
+            return;
         }
 
-        // retroceder ligeramente
         transform.position += Vector3.right * (-direction) * collisionBackoff;
 
         if (Time.time - lastCollisionTime < streakWindow)
