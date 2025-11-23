@@ -42,6 +42,10 @@ public class PlayerHealth : MonoBehaviour
     {
         Debug.Log("PLAYER DEAD");
         // TODO: desactivar control, reproducir animación, recargar escena o Game Over
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.GameOver();
+        }
         gameObject.SetActive(false);
     }
 

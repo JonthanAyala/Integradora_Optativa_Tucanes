@@ -143,7 +143,7 @@ public class EnemySimpleMove : MonoBehaviour
             Rigidbody otherRb = other.GetComponent<Rigidbody>();
             if (otherRb != null)
             {
-                otherRb.velocity = Vector3.zero;
+                otherRb.linearVelocity = Vector3.zero;
                 otherRb.angularVelocity = Vector3.zero;
             }
             else
@@ -164,7 +164,7 @@ public class EnemySimpleMove : MonoBehaviour
         // Para objetos no-jugador: limpiar velocidad del enemigo y retroceder un poco
         if (rb != null)
         {
-            rb.velocity = Vector3.zero;
+            rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
 
@@ -224,7 +224,7 @@ public class EnemySimpleMove : MonoBehaviour
             Rigidbody otherRb = other.GetComponent<Rigidbody>();
             if (otherRb != null)
             {
-                otherRb.velocity = Vector3.zero;
+                otherRb.linearVelocity = Vector3.zero;
                 otherRb.angularVelocity = Vector3.zero;
             }
             else
